@@ -4,21 +4,39 @@ import { addDoc, collection, doc, getDoc, serverTimestamp } from 'firebase/fires
 import { db } from '../app/firebase'
 import { useAuth } from '../app/AuthContext'
 
-export default function BookMentor(){
-  const { id: mentorId } = useParams()        // id do documento em /mentors (pode ser aleatório)
+export default function BookMentor() {
+  const { id: mentorId } = useParams() // id do documento em /mentors
   const navigate = useNavigate()
   const { user } = useAuth()
 
   const [mentor, setMentor] = useState(null)
-  const [form, setForm] = useState({ topic:'', date:'', time:'', duration:60, notes:'' })
+  const [form, setForm] = useState({
+    topic: '',
+    date: '',
+    time: '',
+    duration: 60,
+    notes: ''
+  })
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
   useEffect(() => {
     (async () => {
       try {
+        if (!mentorId) {
+          setError('Mentor não informado na URL.')
+          return
+        }
+
         const snap = await getDoc(doc(db, 'mentors', mentorId))
-        setMentor(snap.exists() ? { id: snap.id, ...snap.data() } : null)
+
+        if (!snap.exists()) {
+          setError('Mentor não encontrado.')
+          setMentor(null)
+          return
+        }
+
+        setMentor({ id: snap.id, ...snap.data() })
       } catch (e) {
         console.error('Erro carregando mentor:', e)
         setError('Não foi possível carregar os dados do mentor.')
@@ -26,8 +44,26 @@ export default function BookMentor(){
     })()
   }, [mentorId])
 
-  if (!user) return <div className="container-xxl py-4">Faça login para agendar.</div>
-  if (!mentor) return <div className="container-xxl py-4">Carregando mentor…</div>
+  if (!user) {
+    return (
+      <div className="container-xxl py-4">
+        Faça login para agendar.
+      </div>
+    )
+  }
+
+  if (!mentor && !error) {
+    return (
+      <div className="container-xxl py-4">
+        Carregando mentor…
+      </div>
+    )
+  }
+
+  const handleChange = (field) => (e) => {
+    const value = e.target.value
+    setForm((prev) => ({ ...prev, [field]: value }))
+  }
 
   const submit = async (e) => {
     e.preventDefault()
@@ -41,22 +77,35 @@ export default function BookMentor(){
     try {
       setSaving(true)
 
+      const mentorName =
+        mentor?.name ||
+        mentor?.displayName ||
+        'Mentor'
+
+      const mentorUserId =
+        mentor?.userId || // se você salvar o UID do mentor aqui na criação em /mentors
+        mentorId          // quebra-galho: id do doc (se ele for igual ao uid)
+
       await addDoc(collection(db, 'bookings'), {
-        // participante cliente
+        // cliente
         userId: user.uid,
+        userEmail: user.email || null,
 
-        // identificadores do mentor
-        mentorId,                        // id do doc em /mentors (pode ser aleatório)
-        mentorUserId: mentor.userId || mentorId, // uid real do mentor (se existir), senão quebra-galho
+        // mentor
+        mentorId,          // id do doc em /mentors
+        mentorUserId,      // usado pra tela do mentor ver as sessões
+        mentorName,        // nome exibido na tela de agendadas
 
-        mentorName: mentor.displayName || mentorId,
+        // dados da sessão
         topic: form.topic.trim(),
         date: form.date,
         time: form.time,
         duration: Number(form.duration) || 60,
         notes: form.notes || '',
+
+        // controle de status
         status: 'REQUESTED',
-        createdAt: serverTimestamp(),
+        createdAt: serverTimestamp()
       })
 
       navigate('/bookings')
@@ -64,7 +113,7 @@ export default function BookMentor(){
       console.error('Erro ao agendar:', e)
       setError(
         e?.message?.includes('Missing or insufficient permissions')
-          ? 'Permissão negada nas regras do Firestore. Confira as regras e se está logada.'
+          ? 'Permissão negada nas regras do Firestore. Confira se está logado(a) e as regras do banco.'
           : `Erro ao agendar: ${e?.message || e}`
       )
     } finally {
@@ -72,46 +121,84 @@ export default function BookMentor(){
     }
   }
 
+  const mentorDisplayName =
+    mentor?.name ||
+    mentor?.displayName ||
+    'Mentor'
+
   return (
     <div className="container-xxl py-4">
-      <div className="mx-auto bg-white rounded-4 p-3 p-md-4 shadow-sm" style={{maxWidth:720}}>
-        <h3 className="mb-3" style={{color:'var(--mh-navy)'}}>Agendar com {mentor.displayName}</h3>
+      <div
+        className="mx-auto bg-white rounded-4 p-3 p-md-4 shadow-sm"
+        style={{ maxWidth: 720 }}
+      >
+        <h3 className="mb-3" style={{ color: 'var(--mh-navy)' }}>
+          Agendar com {mentorDisplayName}
+        </h3>
 
         {error && <div className="alert alert-danger">{error}</div>}
 
         <form onSubmit={submit} className="row g-3">
           <div className="col-12">
             <label className="form-label">Tópico</label>
-            <input className="form-control" value={form.topic}
-                   onChange={e=>setForm(f=>({...f, topic:e.target.value}))} required />
+            <input
+              className="form-control"
+              value={form.topic}
+              onChange={handleChange('topic')}
+              required
+            />
           </div>
 
           <div className="col-12 col-md-4">
             <label className="form-label">Data</label>
-            <input type="date" className="form-control" value={form.date}
-                   onChange={e=>setForm(f=>({...f, date:e.target.value}))} required />
+            <input
+              type="date"
+              className="form-control"
+              value={form.date}
+              onChange={handleChange('date')}
+              required
+            />
           </div>
 
           <div className="col-12 col-md-4">
             <label className="form-label">Hora</label>
-            <input type="time" className="form-control" value={form.time}
-                   onChange={e=>setForm(f=>({...f, time:e.target.value}))} required />
+            <input
+              type="time"
+              className="form-control"
+              value={form.time}
+              onChange={handleChange('time')}
+              required
+            />
           </div>
 
           <div className="col-12 col-md-4">
             <label className="form-label">Duração (min)</label>
-            <input type="number" min="15" step="15" className="form-control" value={form.duration}
-                   onChange={e=>setForm(f=>({...f, duration:e.target.value}))} />
+            <input
+              type="number"
+              min="15"
+              step="15"
+              className="form-control"
+              value={form.duration}
+              onChange={handleChange('duration')}
+            />
           </div>
 
           <div className="col-12">
             <label className="form-label">Observações</label>
-            <textarea className="form-control" rows={3} value={form.notes}
-                      onChange={e=>setForm(f=>({...f, notes:e.target.value}))} />
+            <textarea
+              className="form-control"
+              rows={3}
+              value={form.notes}
+              onChange={handleChange('notes')}
+            />
           </div>
 
           <div className="col-12 d-grid d-sm-flex gap-2">
-            <button className="btn btn-primary w-100 w-sm-auto" disabled={saving}>
+            <button
+              className="btn btn-primary w-100 w-sm-auto"
+              disabled={saving}
+              type="submit"
+            >
               {saving ? 'Agendando…' : 'Confirmar agendamento'}
             </button>
           </div>

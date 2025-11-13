@@ -24,11 +24,18 @@ export default function Navbar() {
     <nav className="navbar navbar-expand-lg navbar-dark" style={{ background: 'var(--mh-navy)' }}>
       <div className="container-fluid px-3">
         {/* Logo (servida da pasta public/) */}
-        <Link className="navbar-brand d-flex align-items-center gap-2" to="/">
-          <img src="/logo.png" alt="MentorHelp" style={{ height: 28 }} />
-          <span className="fw-semibold">MentorHelp</span>
-        </Link>
-
+       <Link className="navbar-brand d-flex align-items-center gap-2" to="/">
+  <img
+    src="/logoverdementorhelp.png"
+    alt="MentorHelp"
+    style={{
+      height: '70px',
+      width: '85px',
+      objectFit: 'contain',
+    }}
+  />
+  <span className="fw-semibold fs-5">MentorHelp</span>
+</Link>
         <button
           className="navbar-toggler"
           type="button"
