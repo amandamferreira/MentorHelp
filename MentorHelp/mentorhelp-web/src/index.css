@@ -1,0 +1,27 @@
+/* RESET BÁSICO PARA O APP */
+html, body, #root {
+  height: 100%;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--mh-light);      /* usa a cor clara do theme.css */
+  color: #111;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+}
+
+/* Faz o app ocupar a tela inteira e empurra o footer para o rodapé */
+#root {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Área central cresce para ocupar o espaço entre navbar e footer */
+.mh-content {
+  flex: 1;
+}
+
+/* Remove qualquer herança de estilos do template do Vite */
+a { text-decoration: none; }

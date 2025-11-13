@@ -1,0 +1,72 @@
+:root{
+  --mh-navy:#0F1648;
+  --mh-green:#006B51;
+  --mh-light:#F1F1F1;
+}
+
+/* base */
+body{ background: var(--mh-light); color:#111; }
+
+/* navbar */
+.mh-navbar{
+  background: var(--mh-navy) !important;
+}
+.mh-navbar .navbar-brand,
+.mh-navbar .nav-link{
+  color: #fff !important;
+}
+.mh-navbar .nav-link.active,
+.mh-navbar .nav-link:hover{ opacity:.9; }
+
+/* botões principais no tom verde */
+.btn-primary{
+  background: var(--mh-green);
+  border-color: var(--mh-green);
+}
+.btn-outline-primary{
+  color: var(--mh-green);
+  border-color: var(--mh-green);
+}
+.btn-outline-primary:hover{
+  background: var(--mh-green);
+  color:#fff;
+}
+
+/* cards e inputs */
+.card{
+  border: 0;
+  box-shadow: 0 6px 16px rgba(15,22,72,0.08);
+  border-radius: 14px;
+}
+.form-control{
+  border-radius: 12px;
+  border-color: #e7e7e7;
+}
+.form-control:focus{
+  border-color: var(--mh-green);
+  box-shadow: 0 0 0 .2rem rgba(0,107,81,.15);
+}
+
+/* footer barra */
+.mh-footer{
+  background: var(--mh-navy);
+  color:#fff;
+  padding:16px 0;
+  margin-top:48px;
+  font-size:.9rem;
+}
+
+/* hero da home */
+.mh-hero{
+  background:#fff;
+  border-radius:16px;
+  padding:24px;
+  box-shadow: 0 10px 30px rgba(15,22,72,.08);
+}
+
+/* larguras & padding */
+.mh-navbar, .mh-footer { width: 100%; }
+.container-xxl, .container-xl, .container-lg, .container {
+  padding-left: 16px;
+  padding-right: 16px;
+}
